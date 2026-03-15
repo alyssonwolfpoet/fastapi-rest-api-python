@@ -1,0 +1,10 @@
+fastapi uvicorn sqlalchemy passlib[bcrypt] python-jose[cryptography] python-dotenv python-multipart sqlalchemy_utils alembic
+
+
+
+alembic init alembic
+
+         alembic revision --autogenerate -m "Initial Migration"
+
+         alembic update head  
+         alembic upgrade head
