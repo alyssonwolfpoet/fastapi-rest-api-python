@@ -3,6 +3,9 @@ from models import db
 
 
 def pega_sessao():
-    Session = sessionmaker(bind=db) 
-    session = Session()
-    return session
+    try:
+        Session = sessionmaker(bind=db) 
+        session = Session()
+        yield session
+    finally:
+        session.close
