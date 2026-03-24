@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
 from dependencies import pega_sessao
 from main import bcrypt_context
@@ -17,11 +17,9 @@ async def Criar_conta(email: str, senha: str,nome:str,session= Depends(pega_sess
     usuario = session.query(Usuario).filter(Usuario.email==email).first()
     if usuario:
         # ja existe um usuario com esse email
-        return {"mensagem": "ja exite um usuario com esse email"}
+        raise HTTPException(status_code=400,detail="e-mail do usuario ja cadastrado")
     else:
-        print(len(senha))
-        print(senha)
-        senha_criptografada = bcrypt_context.hash(senha[:72])
+        senha_criptografada = bcrypt_context.hash(senha)
         novo_usuario = Usuario(nome,email,senha_criptografada)
         session.add(novo_usuario)
         session.commit()
