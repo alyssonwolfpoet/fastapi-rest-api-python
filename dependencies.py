@@ -18,6 +18,7 @@ def verificar_token(token: str = Depends(Oauth2_schema), session: Session = Depe
     try:
         dic_info = jwt.decode(token, SECRETE_KEY, ALGORITH)
         id_usuario= int(dic_info.get("sub"))
+        print(f"id_usuario: {id_usuario}")
     except JWTError as erro:
         print(erro)
         raise HTTPException(status_code=401,detail="Acesso negado, verifique a validade do token")
