@@ -6,6 +6,7 @@ from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
 from jose import jwt,JWTError
 from datetime import datetime,timedelta,timezone
+from fastapi.security import OAuth2PasswordRequestForm
 
 auth_router = APIRouter(prefix="/auth",tags=["auth"])
 
@@ -57,16 +58,28 @@ async def login(login_schema: LoginSchema ,session: Session = Depends(pega_sessa
     if not usuario:
         raise HTTPException(status_code=400,detail="Usuario não encontrado ou credenciais invalida")
     else:
-        acess_token = criar_token(usuario.id)
+        access_token = criar_token(usuario.id)
         refresh_token = criar_token(usuario.id,duracao_token=timedelta(days=7))
         return {
-            "acess_token": acess_token,
+            "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "Bearer"
         }
         # JWT Bearer
 
         #h eader =  {"Access-token: Bearer token"}
+
+@auth_router.post("/login-form")
+async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends() ,session: Session = Depends(pega_sessao) ):
+    usuario = autenticar_usuario(dados_formulario.username,dados_formulario.password,session)
+    if not usuario:
+        raise HTTPException(status_code=400,detail="Usuario não encontrado ou credenciais invalida")
+    else:
+        access_token = criar_token(usuario.id)
+        return {
+            "access_token": access_token,
+            "token_type": "Bearer"
+        }
 
 @auth_router.get("/refresh")
 async def user_refresh_token(usuario: Usuario = Depends(verificar_token)):
