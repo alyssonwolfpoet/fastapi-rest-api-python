@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends , HTTPException
 from sqlalchemy.orm import Session
 from dependencies import pega_sessao, verificar_token
-from schemas import PedidoSchema
-from models import Pedido, Usuario
+from schemas import PedidoSchema , ItemPedidoSchema
+from models import Pedido, Usuario,ItensPedido
 
 order_router = APIRouter(prefix="/pedidos",tags=["pedidos"],dependencies= [Depends(verificar_token)])
 
@@ -29,4 +29,44 @@ async def cancelar_pedido(id_pedido: int,session:Session= Depends(pega_sessao),u
     return{
         "mensagem": f"Pedido número : {pedido.id} cancelado com sucesso",
         "pedido": pedido
+    }
+
+
+@order_router.get("/listar")
+async def listar_pedidos(session:Session= Depends(pega_sessao),usuario: Usuario = Depends(verificar_token)):
+    if not usuario.admin:
+        raise HTTPException(status_code=400,detail="Voce nao tem autorização pra fazer essa operaçao")
+    else:
+        pedidos = session.query(Pedido).all()
+        return {
+            "pedidos" : pedidos
+        }
+        
+@order_router.post("/pedido/adicionar-item/{id_pedido}")
+async def adicionar_item_pedido(id_pedido:int ,
+                                item_pedido_schema: ItemPedidoSchema,
+                                session:Session= Depends(pega_sessao),
+                                usuario: Usuario = Depends(verificar_token)):
+
+
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=400,detail="pedido inexistente")
+    if not usuario.admin and usuario.id != pedido.id:
+        raise HTTPException(status_code=401,detail=" voçê não tem autorização pra essa operação")
+    
+    item_pedido = ItensPedido(item_pedido_schema.quantidade,
+                              item_pedido_schema.sabor,
+                              item_pedido_schema.tamanho,
+                              item_pedido_schema.preco_unitario,
+                              id_pedido
+                              )
+    
+    session.add(item_pedido)
+    pedido.calcukar_preco()
+    session.commit()
+    return {
+        "messagem" : "item criado com sucesso",
+        "item_id": item_pedido.id,
+        "preco_pedido": pedido.preco
     }
