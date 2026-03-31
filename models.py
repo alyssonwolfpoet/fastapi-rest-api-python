@@ -48,7 +48,7 @@ class Pedido(Base):
         self.status = status
         self.preco = preco
     
-    def calcukar_preco(self):
+    def calcular_preco(self):
         # precorrer toos os itens do pedido
         #somar todos os precos do todosos itens dos pedidos
         # editar nno "preco" o valor final do predo dos pedidos 
@@ -57,7 +57,7 @@ class Pedido(Base):
         #     preco_item = item.preco_unitario * item.quantidade
         #     preco_pedido += preco_item
             
-        self.preco = sum(item.preco_unitario * item.quntidade for item in self.itens)
+        self.preco = sum(item.preco_unitario * item.quantidade for item in self.itens)
  
 
 #ItensPedido
