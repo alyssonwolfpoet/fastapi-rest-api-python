@@ -73,14 +73,13 @@ async def adicionar_item_pedido(id_pedido:int ,
     
     
 @order_router.post("/pedido/remover-item/{id__item_pedido}")
-async def remover_item_pedido(id_item_pedido:int ,
-                                item_pedido_schema: ItemPedidoSchema,
+async def remover_item_pedido(id_item_pedido:int,
                                 session:Session= Depends(pega_sessao),
                                 usuario: Usuario = Depends(verificar_token)):
 
 
     item_pedido = session.query(ItensPedido).filter(ItensPedido.id==id_item_pedido).first()
-    pedido = session.query(Pedido).filter(Pedido.id==id_item_pedido).first()
+    pedido = session.query(Pedido).filter(Pedido.id==item_pedido.pedido).first()
     if not item_pedido:
         raise HTTPException(status_code=400,detail="Item no pedido inexistente")
     if not usuario.admin and usuario.id != pedido.usuario:
@@ -91,5 +90,6 @@ async def remover_item_pedido(id_item_pedido:int ,
     session.commit()
     return {
         "messagem" : "item removido com sucesso",
+        "quantidade_itens_pedido": len(pedido.itens),
         "pedido":  pedido
     }    
