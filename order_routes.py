@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends , HTTPException
 from sqlalchemy.orm import Session
 from dependencies import pega_sessao, verificar_token
-from schemas import PedidoSchema , ItemPedidoSchema
+from schemas import PedidoSchema , ItemPedidoSchema,ResponsePedidoSchema
 from models import Pedido, Usuario,ItensPedido
+from typing import List
 
 order_router = APIRouter(prefix="/pedidos",tags=["pedidos"],dependencies= [Depends(verificar_token)])
 
@@ -124,14 +125,11 @@ async def visualizar_pedido(id_pedido: int,session:Session= Depends(pega_sessao)
     
 # visualizar todos os pedidos de 1 usuario
 
-@order_router.get("/listar/pedidos-usuario")
+@order_router.get("/listar/pedidos-usuario",response_model=List[ResponsePedidoSchema])
 async def listar_pedidos(session:Session= Depends(pega_sessao),usuario: Usuario = Depends(verificar_token)):
     pedido = session.query(Pedido).filter(Pedido.usuario == usuario.id).all()
     if not pedido:
         raise HTTPException(status_code=400, detail="Pedido não encontrado")
     if not usuario.admin and usuario.id != pedido.usuario:
         raise HTTPException(status_code=400, detail="Você não tem autorização para fazer essa modificação")
-    return {
-        "quantidade_pedidos" : len(pedido),
-        "pedido":pedido
-    }
+    return pedido
