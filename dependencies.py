@@ -12,7 +12,7 @@ def pega_sessao():
         session = Session()
         yield session
     finally:
-        session.close
+        session.close()
 
 def verificar_token(token: str = Depends(Oauth2_schema), session: Session = Depends(pega_sessao)):
     try:
